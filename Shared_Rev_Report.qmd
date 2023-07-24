@@ -2,7 +2,9 @@
 title: "Shared Revenue"
 author: "Michael J Zenz"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-format: html
+format: 
+  html:
+    page-layout: full
 editor: visual
 ---
 
@@ -62,8 +64,8 @@ data <- shared.revenue.data %>%
                `Density (pop sq mi)` = Population/`Area (sq mi)`,
                 `Combined Tax` = `Net Individual Income Tax` + `State Sales Tax Collections`,
                `Tax Prop Shared Revenue` = (`Combined Tax`/sum(`Combined Tax`)) * sum(`Total Shared Revenue`),
-               `Total Shared Revenue Overage` = `Total Shared Revenue` - `Tax Prop Shared Revenue`,
-               `Per capita Shared Revenue Overage` =  `Total Shared Revenue Overage` / Population,
+               `Total Shared Revenue Subsidy` = `Total Shared Revenue` - `Tax Prop Shared Revenue`,
+               `Per capita Shared Revenue Subsidy` =  `Total Shared Revenue Subsidy` / Population,
                `Per capita Income Tax` = `Net Individual Income Tax`/Population,
                `Per capita Combined Tax` = `Combined Tax`/Population,
                `2020 Trump Majority` = Trump_2020_Prop > .5 
@@ -75,12 +77,9 @@ rm(county.pop.area, shared.revenue.data, shared.revenue.data.unprocessed, trump.
 
 
 #Linear Regression model for population and amount of shared revenue.
-income.lm <- lm(`Per capita Shared Revenue Overage` ~ log(`Per capita Income Tax`), data = data)
+income.lm <- lm(`Per capita Shared Revenue Subsidy` ~ log(`Per capita Income Tax`), data = data)
 #summary(income.lm)
 
-income.lm.no_outlier <- lm(`Per capita Shared Revenue Overage` ~ log(`Per capita Income Tax`), 
-                           data = data[which(log(data$`Per capita Income Tax`)>6),])
-#summary(income.lm.no_outlier)
 
 population.lm <- lm(`Total Shared Revenue` ~ Population, data)
 #summary(population.lm)
@@ -92,7 +91,9 @@ slope <- coef(population.lm.log)[2]
 
 ```
 
-During the spring and summer of 2023 leaders in the Wisconsin legislature along with Governor Evers proposed changes to county and municipal aid, which is a small part of the total state tax procedes shared with local governments. This "shared revenue" is collected primarily through state income and sales taxes and are redistributed to county and municipal governments to help them fund the various services that are typically provided by local rather than state government.
+During the spring and summer of 2023 leaders in the Wisconsin legislature along with Governor Evers proposed changes to county and municipal aid, which is a small part of the total state tax proceeds shared with local governments.[^1] This "shared revenue" is collected primarily through state income and sales taxes and are redistributed to county and municipal governments to help them fund the various services that are typically provided by local rather than state government.
+
+[^1]: For information about state aid see a recent [WI Legislative Fiscal Bureau Report](https://docs.legis.wisconsin.gov/misc/lfb/misc/118_distributions_of_existing_and_supplemental_county_and_municipal_aid_7_10_23.pdf) on changes to state aid to counties. However this is a small fraction of all shared revenue. For instance, state aid to Dane County governments was set to increase from around \$1M to \$5M in 2024, whereas total shared revenue in 2020-21 was around \$250M.
 
 Despite [a complex formula](https://docs.legis.wisconsin.gov/misc/lfb/informational_papers/january_2017/0018_shared_revenue_program_informational_paper_18.pdf) for calculating the level of shared revenue, **population largely determines the level of shared revenue that each county receives**.
 
@@ -121,18 +122,67 @@ theme_minimal() +
 
 Individuals are given roughly equal allocations regardless of where they live, but this can result in local governments receiving proportionally less money in shared revenue than their residents pay in. Richer countries tend to receive less than they pay in, and poorer counties more.
 
-```{r, diff_prop_shared_rev_graph, fig.height = 13 , fig.width = 7}
+::: {layout-ncol="2"}
+```{r, shared_revenue_subsidy, fig.height = 10 , fig.width = 6}
 #| echo: false
 #| warning: false
 
-ggplot(data = data, aes(y = reorder(County,`Per capita Combined Tax`) , x = `Per capita Shared Revenue Overage`)) +
+ggplot(data = data, aes(y = reorder(County,`Per capita Combined Tax`) , x = `Per capita Shared Revenue Subsidy`)) +
   scale_fill_manual(values = c("blue", "red")) + 
   geom_bar(aes(fill = `2020 Trump Majority`), stat = "identity") +
   theme_minimal() +
-labs(title = "Per Capita Shared Revenue Over Proportional Tax",
-     subtitle = "Ordered by per-capita tax (higher tax procedes at top)",
+labs(title = "Per Capita Shared Revenue Subsidy",
+     subtitle = "Ordered by per-capita tax procedes (highest to lowest)",
        x = "Per Capita $", y = "") +     
   theme(legend.position="bottom")
   
     
+```
+
+```{r, Change_InFunding, fig.height = 10 , fig.width = 6}
+#| echo: false
+#| warning: false
+
+ggplot(data = data, aes(y = reorder(County,`Per capita Combined Tax`) , x = ( (`Total Shared Revenue` - `Total Shared Revenue Subsidy`) - `Total Shared Revenue`)/`Total Shared Revenue`)) +
+  scale_fill_manual(values = c("blue", "red")) + 
+   scale_x_continuous(labels = scales::percent) +
+  geom_bar(aes(fill = `2020 Trump Majority`), stat = "identity") +
+  theme_minimal() +
+labs(title = "% change in Shrd. Rev. if Based on Taxes Only",
+     subtitle = "Ordered by per-capita tax procedes (highest to lowest)",
+       x = "% Change in Shared Revenue", y = "") +     
+  theme(legend.position="bottom")
+  
+    
+```
+:::
+
+Because of the patterns of wealth in Wisconsin, tax proceeds from richer (primarily suburban) counties generally flow to poorer ones. Additionally, less dense counties recieve less per-capita shared revenue than denser ones, with the exception of Milwaukee County.
+
+```{r, density}
+
+
+
+#linear model of density and  per capita shared revenue
+density.percapita.combinedtax.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = data)
+#summary(density.percapita.combinedtax.lm)
+intercept <- coef(density.percapita.combinedtax.lm)[1]
+slope <- coef(density.percapita.combinedtax.lm)[2]
+
+
+ggplot(data = data, aes(x = log(`Density (pop sq mi)`), y = log((`Total Shared Revenue`)/Population))) + 
+  geom_point(aes(color = `2020 Trump Majority`)) +
+    scale_color_manual(values = c("blue", "red")) + 
+  geom_abline(slope = slope, intercept = intercept) + 
+ labs(title = "WI County (and municipal) Per Capita Shared Revenue by Pop. Density",
+       x = "Population Density (log)", y = "Per Capita Shared Revenue in $ (log)") +
+theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x =element_blank() , 
+        axis.text.y = element_blank() , 
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+
 ```

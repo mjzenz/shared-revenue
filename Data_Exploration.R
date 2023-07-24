@@ -92,25 +92,31 @@ ggplot(data = data, aes(x = log(`Density (pop sq mi)`), y = log(`Per capita Inco
   #coord_trans(x="log1", y="log1")   +  
   geom_abline(slope = slope, intercept = intercept)
 
-
-density.combinedtax.lm <- lm(log(`Per capita Combined Tax`) ~ log(`Density (pop sq mi)`), data = data)
-summary(density.combinedtax.lm)
-intercept <- coef(density.combinedtax.lm)[1]
-slope <- coef(density.combinedtax.lm)[2]
-
-(log(1:4000) * slope + intercept)^10
-density.df <- data.frame(density = 1:4000)
-density.df$predicted_combined_tax <- (density.df$density * slope + intercept)^10
-density.df <- tibble(`Density (pop sq mi)` = 1:4000)
-predict(density.combinedtax.lm, newvar= density.df)
+#linear model of density and  per capita shared revenue
+density.percapita.combinedtax.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = data)
+summary(density.percapita.combinedtax.lm)
+intercept <- coef(density.percapita.combinedtax.lm)[1]
+slope <- coef(density.percapita.combinedtax.lm)[2]
 
 
-ggplot(data = data, aes(x = `Density (pop sq mi)`, y = `Per capita Combined Tax`)) + 
+ggplot(data = data, aes(x = log(`Density (pop sq mi)`), y = log((`Total Shared Revenue`)/Population))) + 
   geom_point(aes(color = `2020 Trump Majority`)) +
-  geom_line(aes(x = density.df$density, 
-                 y = density.df$predicted_combined_tax), 
-             color = 'black')
+  geom_abline(slope = slope, intercept = intercept)  
+  
 
-plot(x = density.df$density, y = density.df$predicted_combined_tax)
-points(x = data$`Density (pop sq mi)`, data$`Per capita Combined Tax`)
+#linear model of (log) per capita subsidy vs log density.
+Min_Subsidy <- abs(min(data$`Per capita Shared Revenue Subsidy`))
+density.percapita.subsidy.lm <- data %>% mutate(`Per capita Shared Revenue Subsidy tran` = `Per capita Shared Revenue Subsidy` + (Min_Subsidy+1)) %>%
+ lm(log(`Per capita Shared Revenue Subsidy tran`) ~ log(`Density (pop sq mi)`),
+                                       data = .)
+summary(density.percapita.subsidy.lm)
+intercept <- coef(density.percapita.subsidy.lm)[1]
+slope <- coef(density.percapita.subsidy.lm)[2]
+
+data %>% mutate(`Per capita Shared Revenue Subsidy tran` = `Per capita Shared Revenue Subsidy` + (Min_Subsidy+1)) %>% 
+ggplot(aes(x = log(`Density (pop sq mi)`), y = log(`Per capita Shared Revenue Subsidy tran`))) + 
+  geom_point(aes(color = `2020 Trump Majority`)) +
+  geom_abline(slope = slope, intercept = intercept)  
+
+
 
