@@ -93,15 +93,73 @@ ggplot(data = data, aes(x = log(`Density (pop sq mi)`), y = log(`Per capita Inco
   geom_abline(slope = slope, intercept = intercept)
 
 #linear model of density and  per capita shared revenue
-density.percapita.combinedtax.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = data)
+density.percapita.combinedtax.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`) + log(`Per capita Combined Tax`), data = data)
 summary(density.percapita.combinedtax.lm)
 intercept <- coef(density.percapita.combinedtax.lm)[1]
 slope <- coef(density.percapita.combinedtax.lm)[2]
 
 
-ggplot(data = data, aes(x = log(`Density (pop sq mi)`), y = log((`Total Shared Revenue`)/Population))) + 
+
+#linear model of density and per capita shared revenue, with individual model per quartile.
+density.percapita.combinedtax.quartile1 <-  data %>% 
+  mutate(`Tax Quartile` = ntile(`Per capita Combined Tax`, 4)) %>%
+  filter(`Tax Quartile` == 1) %>%
+lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = .)
+summary(density.percapita.combinedtax.quartile1)
+
+intercept.slope.df <- data.frame(quartile = 1, 
+                                 intercept = as.numeric(coef(density.percapita.combinedtax.quartile1)[1]),
+                                 slope = as.numeric(coef(density.percapita.combinedtax.quartile1)[2]))
+
+intercept.1 <- as.numeric(coef(density.percapita.combinedtax.quartile1)[1])
+slope.1 <- as.numeric(coef(density.percapita.combinedtax.quartile1)[2])
+
+density.percapita.combinedtax.quartile2 <-  data %>% 
+  mutate(`Tax Quartile` = ntile(`Per capita Combined Tax`, 4)) %>%
+  filter(`Tax Quartile` == 2) %>%
+  lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = .)
+summary(density.percapita.combinedtax.quartile2)
+
+intercept.slope.df <- rbind(intercept.slope.df,data.frame(quartile = 2, 
+                                   intercept = as.numeric(coef(density.percapita.combinedtax.quartile2)[1]),
+                                   slope = as.numeric(coef(density.percapita.combinedtax.quartile2)[2])))
+
+intercept.2 <- coef(density.percapita.combinedtax.quartile2)[1]
+slope.2 <- coef(density.percapita.combinedtax.quartile2)[2]
+
+density.percapita.combinedtax.quartile3 <-  data %>% 
+  mutate(`Tax Quartile` = ntile(`Per capita Combined Tax`, 4)) %>%
+  filter(`Tax Quartile` == 3) %>%
+  lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = .)
+summary(density.percapita.combinedtax.quartile3)
+
+
+intercept.slope.df <- rbind(intercept.slope.df,data.frame(quartile = 3, 
+                                    intercept = as.numeric(coef(density.percapita.combinedtax.quartile3)[1]),
+                                     slope = as.numeric(coef(density.percapita.combinedtax.quartile3)[2])))
+
+intercept.3 <- coef(density.percapita.combinedtax.quartile3)[1]
+slope.3 <- coef(density.percapita.combinedtax.quartile3)[2]
+
+density.percapita.combinedtax.quartile4 <-  data %>% 
+  mutate(`Tax Quartile` = ntile(`Per capita Combined Tax`, 4)) %>%
+  filter(`Tax Quartile` == 4) %>%
+  lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`), data = .)
+summary(density.percapita.combinedtax.quartile4)
+
+
+intercept.slope.df <- rbind(intercept.slope.df,data.frame(quartile = 4, 
+                                  intercept = as.numeric(coef(density.percapita.combinedtax.quartile4)[1]),
+                                slope = as.numeric(coef(density.percapita.combinedtax.quartile4)[2])))
+intercept.4 <- coef(density.percapita.combinedtax.quartile4)[1]
+slope.4 <- coef(density.percapita.combinedtax.quartile4)[2]
+
+data %>% mutate(quartile = ntile(`Per capita Combined Tax`, 4)) %>%
+inner_join(intercept.slope.df, by = "quartile") %>%
+ggplot(data = ., aes(x = log(`Density (pop sq mi)`), y = log((`Total Shared Revenue`)/Population))) + 
   geom_point(aes(color = `2020 Trump Majority`)) +
-  geom_abline(slope = slope, intercept = intercept)  
+  facet_grid(cols = vars(quartile)) + 
+  geom_abline(aes(slope = slope, intercept = intercept))  
   
 
 #linear model of (log) per capita subsidy vs log density.
