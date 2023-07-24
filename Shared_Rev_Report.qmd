@@ -1,5 +1,5 @@
 ---
-title: "Shared Revenue"
+title: "Wisconsin Shared Revenue is Redistributive"
 author: "Michael J Zenz"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format: 
@@ -8,7 +8,7 @@ format:
 editor: visual
 ---
 
-## Shared Revenue is Redistributive
+## County-level Distribution of Shared Revenue
 
 ```{r, setup}
 #| echo: false
@@ -157,7 +157,7 @@ labs(title = "% change in Shrd. Rev. if Based on Taxes Only",
 ```
 :::
 
-Because of the patterns of wealth in Wisconsin, tax proceeds from richer (primarily suburban) counties generally flow to poorer ones. Additionally, less dense counties recieve less per-capita shared revenue than denser ones, with the exception of Milwaukee County.
+Because of the patterns of wealth in Wisconsin, tax proceeds from richer (primarily suburban) counties generally flow to poorer ones. Additionally, less dense counties receive less per-capita shared revenue than denser ones, with the exception of Milwaukee County.
 
 ```{r, density}
 
@@ -186,3 +186,7 @@ theme_minimal() +
 
 
 ```
+
+## Should Shared Revenue Redistribute?
+
+The current shared revenue scheme is quite effective at redistributing money from richer counties to poorer ones. The more foundational question is whether this is something state government should do.
