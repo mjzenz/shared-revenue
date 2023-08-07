@@ -99,6 +99,15 @@ intercept <- coef(density.percapita.combinedtax.lm)[1]
 slope <- coef(density.percapita.combinedtax.lm)[2]
 
 
+#linear model of density and per capita shared revenue with interaction
+density.percapita.combinedtax.interaction.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`) + log(`Per capita Combined Tax`) + 
+                                                     (log(`Density (pop sq mi)`) : log(`Per capita Combined Tax`)), data = data)
+summary(density.percapita.combinedtax.interaction.lm)
+intercept <- coef(density.percapita.combinedtax.interaction.lm)[1]
+slope <- coef(density.percapita.combinedtax.interaction.lm)[2]
+
+
+
 
 #linear model of density and per capita shared revenue, with individual model per quartile.
 density.percapita.combinedtax.quartile1 <-  data %>% 
