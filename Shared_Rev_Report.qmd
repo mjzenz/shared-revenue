@@ -8,7 +8,7 @@ format:
 editor: visual
 ---
 
-## County-level Distribution of Shared Revenue
+## The Distribution of Shared Revenue
 
 ```{r, setup}
 #| echo: false
@@ -252,8 +252,14 @@ labs(title = "Per Capita Shared Revenue by Density and Per Capita Tax Proceeds (
 
 ```
 
-## Should Shared Revenue Redistribute?
+## Is Wisconsin's Shared Revenue System Fair?
 
-The current shared revenue scheme is quite effective at redistributing money from richer counties to poorer ones. The more fundamenta question is whether this is something that the state government should do.
+There are strong norms of fairness that require citizens to have equal access to government services regardless of wealth. For instance, most people would consider it unjust for a government to provide different tiers of services based upon the amount an individual pays to the government in taxes. Much the same can be said for providing larger shares of shared revenue to some *communities* based upon the higher contribution of their members of tax revenues. In this respect, the current method that provides all communities with similar per-capita shared revenue allocations is fair.
 
-The obvious alternative is local control over income taxes received in a county or municipality beyond what is used to provide state-wide services. In one sense this would be a fair system - resources would be given to the communities in which those taxpayers live.
+An admittedly more speculative argument might be made to justify higher per-capita shared revenue allocations to less dense areas or areas with large amounts of older infrastructure (like Milwaukee county). Because services are more expensive to provide in these areas, and what matters to people is the quality of services provided rather than how much money it takes to provide them, it may be fairer to provide funds necessary for equality of service quality rather than equal funds. Of course, the more expensive cost to provide services in rural areas may just as easily justify the government in providing incentives to abandon rural communities where jobs are scarce and the provision of services is more expensive.
+
+Even without evaluating these arguments it is easy to see that much of the dominant narratives about shared revenue aren't based in fact. For instance, the commonly expressed idea that hard-working conservative people in rural and suburban counties subsidize the profligacy of liberals in Madison and Milwaukee is clearly false. Most rural counties are heavily subsidized by tax-payers in more urban ones, including Dane county, and the per-capita subsidy provided to Milwaukee county is much smaller than most rural counties.
+
+Some have also claimed that the shared revenue system is explicitly unfair to more liberal communities, like Madison and Milwaukee. However, the political affiliation of a county doesn't appear to have any impact on its shared revenue allocation. Dane and Milwaukee counties receive per-capita allocations slightly above what would be expected from their population alone. And although Dane county does have a substantial negative subsidy, so do other more suburban counties that are much more conservative.
+
+I think any substantial changes to shared revenue allocation - like allocating based upon tax revenues rather than population - would require a deeper discussion of an alternative notion of fairness than the one I describe above. There is a model for this in how local property taxes are largely collected by and allocated to the communities in which the are raised. Perhaps it can be argued that tax payers have a substantial interest in having their income and sales taxes stay in their communities where it will impact them more and be easier for them to control (through local government). However, allowing richer communities to keep more taxes of their residents would have a devastating impact on services in poorer communities, including Milwaukee county. Additionally, it seems to ignore existing criticisms of how property taxes are currently kept by the communities in which they are raised, especially how this system leads to under-funding of schools and various social services in poorer communities. It would be odd for liberals to argue for its extension to all forms of taxation.
