@@ -168,7 +168,8 @@ Although per-capita shared revenue is largely similar across counties, rural cou
 [^4]: By Log-linear regression model, R^2^ = 0.53. Model coefficients are no longer significantly different from 0 when including an interaction effect between density and per-capita tax proceeds. This may be due to there being too few data points (counties) to adequately model the interaction, but might be an area of further investigation (by someone with more knowledge of statistics).
 
 ```{r, density}
-
+#| echo: false
+#| warning: false
 
 
 
