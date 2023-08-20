@@ -1,10 +1,14 @@
 ---
-title: "Wisconsin Shared Revenue and Wealth Redistribution"
+title: "Is Wisconsin's Shared Revenue System Fair?"
 author: "Michael J Zenz"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: last-modified
+title-block-banner: true
+link-external-icon: true
+link-external-newwindow: true
 format: 
   html:
-    page-layout: full
+    embed-resources: true
+    #page-layout: full
 editor: visual
 ---
 
@@ -76,11 +80,7 @@ rm(county.pop.area, shared.revenue.data, shared.revenue.data.unprocessed, trump.
 
 
 
-#Linear Regression model for population and amount of shared revenue.
-income.lm <- lm(`Per capita Shared Revenue Subsidy` ~ log(`Per capita Income Tax`), data = data)
-#summary(income.lm)
-
-
+#Linear Regression model for population and amount of shared revenue (log model for display).
 population.lm <- lm(`Total Shared Revenue` ~ Population, data)
 #summary(population.lm)
 population.lm.log <-  lm(log(`Total Shared Revenue`) ~ log(Population), data)
@@ -89,13 +89,30 @@ population.lm.log <-  lm(log(`Total Shared Revenue`) ~ log(Population), data)
 intercept <- coef(population.lm.log)[1]
 slope <- coef(population.lm.log)[2]
 
+
+#Linear Regression model for log of per-capita combined tax and per-capita shared revenue subsidy
+combined_tax.lm <- lm(`Per capita Shared Revenue Subsidy` ~ log(`Per capita Combined Tax`), data = data)
+#summary(combined_tax.lm)
+
+
+
+
+#linear model of density, per capita shared revenue, and trump vote share
+density.percapita.combinedtax.trump.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`) + log(`Per capita Combined Tax`) + Trump_2020_Prop, data = data)
+#summary(density.percapita.combinedtax.trump.lm)
+
+#linear model of density, per capita shared revenue
+density.percapita.combinedtax.lm <- lm(log((`Total Shared Revenue`)/Population) ~ log(`Density (pop sq mi)`) + log(`Per capita Combined Tax`), data = data)
+#summary(density.percapita.combinedtax.lm)
+
+
 ```
 
-During the spring and summer of 2023 leaders in the Wisconsin legislature along with Governor Evers proposed changes to county and municipal aid, which is a small part of the total state tax proceeds shared with local governments.[^1] This "shared revenue" is collected primarily through state income and sales taxes and are redistributed to county and municipal governments to help them fund the various services that are typically provided by local rather than state government.
+During the spring and summer of 2023 leaders in the Wisconsin legislature along with Governor Evers proposed changes to county and municipal aid, which is a small part of the total state tax proceeds shared with local governments.[^1] This "shared revenue" is collected primarily through state income and sales taxes and are distributed to county and municipal governments to help them fund the various services that are typically provided by local rather than state government. Much of this money is designated by the state for particular purposes, for instance for healthcare services or transportation. This analysis is based upon [total county shared revenue and tax data from 2020 calculated by the WI Legislative Fiscal Bureau](https://github.com/mjzenz/shared-revenue/blob/master/Documents/TotalSharedRevenue_Tax_2020.pdf) at the request of Representative Francesca Hong.
 
-[^1]: For information about state aid see a recent [WI Legislative Fiscal Bureau Report](https://docs.legis.wisconsin.gov/misc/lfb/misc/118_distributions_of_existing_and_supplemental_county_and_municipal_aid_7_10_23.pdf) on changes to state aid to counties. However this is a small fraction of all shared revenue. For instance, state aid to Dane County governments was set to increase from around \$1M to \$5M in 2024, whereas total shared revenue in 2020-21 was around \$250M.
+[^1]: For information about state aid see a recent [WI Legislative Fiscal Bureau Report](https://docs.legis.wisconsin.gov/misc/lfb/misc/118_distributions_of_existing_and_supplemental_county_and_municipal_aid_7_10_23.pdf) on changes to state aid to counties. However this is a small fraction of all shared revenue. For instance, state aid to Dane County governments was set to increase from around \$1M to \$5M in 2024, whereas total shared revenue in 2020 was around \$250M.
 
-Despite [a complex formula](https://docs.legis.wisconsin.gov/misc/lfb/informational_papers/january_2017/0018_shared_revenue_program_informational_paper_18.pdf) for calculating the level of shared revenue, **population largely determines the level of shared revenue that each county receives**.[^2] The graph below shows total shared revenues for each county against county population (both shown on a log-scales for readability). Counties in which Trump won a majority of votes in the 2020 general election are shown in red (those where he did not get a majority in blue). Counties above the line were given higher per-capita shared revenue allocations than average. Notably both Dane and Milwaukee counties were given above average per-capita allocations (the two blue dots in the upper right of the graph).
+Despite [a complex formula](https://docs.legis.wisconsin.gov/misc/lfb/informational_papers/january_2017/0018_shared_revenue_program_informational_paper_18.pdf) for calculating the level of shared revenue, **population largely determines the level of shared revenue that each county receives**.[^2] The graph below shows total shared revenues for each county against county population (both shown on a log-scales for readability). Counties in which Trump won a majority of votes in the 2020 general election are shown in red (those where he did not win a majority are in blue). Counties above the line were given higher per-capita shared revenue allocations than average. Notably both Dane and Milwaukee counties were given above average per-capita allocations (the two blue dots in the upper right of the graph). Partisanship of the county (as measured by 2020 Trump vote share) had no effect on per-capita allocation.
 
 [^2]: Every person in a county's population earns it roughly an additional \$5k in shared revenue, determined by a linear regression model R^2^ = 0.93.
 
@@ -108,8 +125,8 @@ ggplot(data = data, aes(x = log(Population), y = log(`Total Shared Revenue`))) +
             geom_point(aes(color = `2020 Trump Majority`)) +
   scale_colour_manual(values = c("blue", "red")) + 
   geom_abline(slope = slope, intercept = intercept) + 
-  labs(title = "WI County (and Municipal) Shared Revenue by Population",
-       x = "County Population (log)", y = "Tota Shared Revenue in $ (log)") +
+  labs(title = "WI County (and Municipal) Shared Revenue by County Population",
+       x = "County Population (log)", y = "Total Shared Revenue in $ (log)") +
 theme_minimal() +
   theme(axis.text.x = element_blank(),
         axis.ticks.x =element_blank() , 
@@ -122,14 +139,9 @@ theme_minimal() +
 
 ```
 
-Although *individuals* are given roughly equal allocations regardless of where they live, this can result in local governments receiving proportionally less money in shared revenue than their residents pay in taxes. Richer counties tend to receive less than they pay in, and poorer counties more, with total tax revenue serving as a reasonable proxy for per-capita wealth. The graph below and to the left shows the amount of shared revenue counties are allocated above their relative (per capita) contribution through income and sales taxes. This is the amount they are subsidized by tax payers in other counties, with bars going to the left showing a *negative* subsidy. Counties are ordered (in descending order) by per-capita tax revenue, showing that poorer counties generally receive larger subsidies.[^3] It also shows that there is a great deal of variability in subsidy between counties of similar per-capita tax.
+Although *individuals* are given roughly equal shared revenue allocations regardless of where they live, this can result in local governments receiving proportionally less money in shared revenue than their residents pay in taxes. Richer counties tend to receive less than they pay in, and poorer counties more, with total tax revenue serving as a rough proxy for per-capita wealth. The graph below shows the amount of shared revenue counties are allocated above their relative (per capita) contribution through income and sales taxes. This is the amount they are subsidized by tax payers in other counties, with bars going to the left showing a *negative* subsidy. Counties are displayed in descending order by per-capita total tax revenue, showing that poorer counties generally receive larger subsidies.[^3] It also shows that there is a great deal of variability in subsidy between counties of similar per-capita tax. County partisanship is also shown, but did not have a significant effect on subsidy.
 
-[^3]: By log-linear regression model, R^2^ = 0.59.
-
-The graph below and to the right shows the percentage change in per-capita shared revenue if there were no subsidy, meaning that each county received shared revenue proportional to their total tax contribution. Because of the patterns of wealth in Wisconsin, an end (or scaling back) of the shared governance subsidy would be particular devastating for primarily rural poorer counties plus Milwaukee county while benefiting rich primarily suburban ones.
-
-::: {layout-ncol="2"}
-```{r, shared_revenue_subsidy, fig.height = 10 , fig.width = 6}
+```{r, shared_revenue_subsidy, fig.height = 10}
 #| echo: false
 #| warning: false
 
@@ -137,7 +149,7 @@ ggplot(data = data, aes(y = reorder(County,`Per capita Combined Tax`) , x = `Per
   scale_fill_manual(values = c("blue", "red")) + 
   geom_bar(aes(fill = `2020 Trump Majority`), stat = "identity") +
   theme_minimal() +
-labs(title = "Per Capita Shared Revenue Subsidy",
+labs(title = "Per Capita Shared Revenue Subsidy by County",
      subtitle = "Ordered by per-capita tax procedes (highest to lowest)",
        x = "Per Capita $", y = "") +     
   theme(legend.position="bottom")
@@ -145,7 +157,13 @@ labs(title = "Per Capita Shared Revenue Subsidy",
     
 ```
 
-```{r, Change_InFunding, fig.height = 10 , fig.width = 6}
+
+[^3]: By linear regression model, R^2^ = 0.68. Log of per-capita combined income and sales tax predicting per-capita shared revenue subsidy.
+
+The graph below shows the percentage change in per-capita shared revenue for 2020 if there were no subsidy, meaning that each county received shared revenue proportional to their total tax contribution. Because of the patterns of wealth in Wisconsin, an end (or scaling back) of the shared revenue subsidy would be particular devastating for primarily rural poorer counties and Milwaukee county. However, it would significantly benefit rich (primarily suburban) ones like Dane County and counties in the Milwaukee suburbs.
+
+
+```{r, Change_InFunding, , fig.height = 10}
 #| echo: false
 #| warning: false
 
@@ -161,11 +179,11 @@ labs(title = "% Change in Shrd. Rev. if Based on Taxes Only",
   
     
 ```
-:::
 
-Although per-capita shared revenue is largely similar across counties, rural counties earn higher per-capita shared revenue even when accounting for difference levels of wealth (as represented by total tax proceeds).[^4] The below graph shows these results: per-capita shared revenue against population density, with each quartile of per-capita tax proceeds represented by a different pane.
 
-[^4]: By Log-linear regression model, R^2^ = 0.53. Model coefficients are no longer significantly different from 0 when including an interaction effect between density and per-capita tax proceeds. This may be due to there being too few data points (counties) to adequately model the interaction, but might be an area of further investigation (by someone with more knowledge of statistics).
+Although per-capita shared revenue is largely similar across counties, less dense counties are allocated higher per-capita shared revenue even when accounting for different levels of wealth (as represented by total tax proceeds).[^4] However, this relationship only holds for counties with below the median county per-capita combined tax revenues. The below graph shows these results: per-capita shared revenue against population density, with each quartile of per-capita tax proceeds represented by a different pane. The bottom two quartiles (left of the graph) show a very tight negative relationship between density and per-capita shared revenue (the model line tightly fits the dots), but this is not the case for the top two tax quartiles (right of the graph).
+
+[^4]: By linear regression model, R^2^ = 0.58. Log of per-capita combined tax and log of county density predicting log of per-capita shared revenue. When Trump 2020 vote share is included in the model, higher 2020 Trump vote share actually predicted *lower* per-capita shared revenue allocations with similar model fit.
 
 ```{r, density}
 #| echo: false
@@ -255,12 +273,12 @@ labs(title = "Per Capita Shared Revenue by Density and Per Capita Tax Proceeds (
 
 ## Is Wisconsin's Shared Revenue System Fair?
 
-There are strong norms of fairness that require citizens to have equal access to government services regardless of wealth. For instance, most people would consider it unjust for a government to provide different tiers of services based upon the amount an individual pays to the government in taxes. Much the same can be said for providing larger shares of shared revenue to some *communities* based upon the higher contribution of their members of tax revenues. In this respect, the current method that provides all communities with similar per-capita shared revenue allocations is fair.
+There are strong norms of fairness that require citizens to have equal access to government services regardless of wealth. For instance, most people would consider it unjust for a government to provide different tiers of services based upon the amount an individual pays to the government in taxes. Much the same can be said for providing larger shares of shared revenue to some *communities* based upon the higher contribution of their members to tax revenues. In this respect, the current method, which provides all communities with similar per-capita shared revenue allocations, is fair.
 
 An admittedly more speculative argument might be made to justify higher per-capita shared revenue allocations to less dense areas or areas with large amounts of older infrastructure (like Milwaukee county). Because services are more expensive to provide in these areas, and what matters to people is the quality of services provided rather than how much money it takes to provide them, it may be fairer to provide funds necessary for equality of service quality rather than equal funds. Of course, the more expensive cost to provide services in rural areas may just as easily justify the government in providing incentives to abandon rural communities where jobs are scarce and the provision of services is more expensive.
 
 Even without evaluating these arguments it is easy to see that much of the dominant narratives about shared revenue aren't based in fact. For instance, the commonly expressed idea that hard-working conservative people in rural and suburban counties subsidize the profligacy of liberals in Madison and Milwaukee is clearly false. Most rural counties are heavily subsidized by tax-payers in more urban ones, including Dane county, and the per-capita subsidy provided to Milwaukee county is much smaller than most rural counties.
 
-Some have also claimed that the shared revenue system is explicitly unfair to more liberal communities, like Madison and Milwaukee. However, the political affiliation of a county doesn't appear to have any impact on its shared revenue allocation. Dane and Milwaukee counties receive per-capita allocations slightly above what would be expected from their population alone. And although Dane county does have a substantial negative subsidy, so do other more suburban counties that are much more conservative.
+Some have also claimed that the shared revenue system is explicitly unfair to more liberal communities, like Madison and Milwaukee. However, the political affiliation of a county doesn't appear to have any impact on its shared revenue allocation. Dane and Milwaukee counties receive per-capita allocations slightly above what would be expected from their population alone. And although Dane county does have a substantial negative subsidy, so do other suburban counties that are much more conservative.
 
-I think any substantial changes to shared revenue allocation - like allocating based upon tax revenues rather than population - would require a deeper discussion of an alternative notion of fairness than the one I describe above. There is a model for this in how local property taxes are largely collected by and allocated to the communities in which the are raised. Perhaps it can be argued that tax payers have a substantial interest in having their income and sales taxes stay in their communities where it will impact them more and be easier for them to control (through local government). However, allowing richer communities to keep more taxes of their residents would have a devastating impact on services in poorer communities, including Milwaukee county. Additionally, it seems to ignore existing criticisms of how property taxes are currently kept by the communities in which they are raised, especially how this system leads to under-funding of schools and various social services in poorer communities. It would be odd for liberals to argue for its extension to all forms of taxation.
+Certainly any substantial changes to shared revenue allocation - like allocating based upon tax revenues rather than population - would require a deeper discussion of an alternative notion of fairness than the one I describe above. There is a model for this in how local property taxes are largely collected by and allocated to the communities in which the are raised. Perhaps it can be argued that tax payers have a substantial interest in having their income and sales taxes stay in their own communities, where it will impact them more and be easier for them to control (through local government). However, allowing richer communities to keep more taxes of their residents would have a devastating impact on services in poorer communities, including Milwaukee county. Additionally, it seems to ignore existing criticisms of how property taxes are currently kept by the communities in which they are raised, especially how this system leads to under-funding of schools and various social services in poorer communities. It would be odd for liberals to argue for its extension to all forms of taxation.
